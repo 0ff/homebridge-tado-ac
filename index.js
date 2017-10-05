@@ -993,7 +993,7 @@ TadoAccessory.prototype._setOverlay = function(overlay, functionName, state) {
             }
             if (overlayReady != null) {
                 overlayReady = JSON.stringify(overlayReady);
-                // accessory.log("zone: " + accessory.zone + ",  body: " + overlayReady);
+                accessory.log("overlay: " + overlayReady);
             }
             https.request(options, null).end(overlayReady);  
             accessory.setProcessing = false;
