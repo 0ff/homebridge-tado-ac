@@ -23,12 +23,13 @@ function TadoACplatform(log, config, api) {
     this.durationInMinutes =  config['durationInMinutes'] || 90;
     this.autoOnly = config['autoOnly'] || false;
     this.manualControl = config['manualControl'] || false;
-    this.extraTemperatureSensor = config['extraTemperatureSensor'] || false;
     this.weatherSensorsEnabled = config['weatherSensorsEnabled'] || false;
     this.weatherPollingInterval = (config['weatherPollingInterval']*60*1000) || false;
     this.occupancySensorsEnabled = config['occupancySensorsEnabled'] || false;
     this.occupancyPollingInterval = (config['occupancyPollingInterval']*1000) || 10000;
     this.anyoneSensor = (config['anyoneSensor']) || true;
+    this.disableHumiditySensor = config['disableHumiditySensor'] || false;
+    this.disableFan = config['disableFan'] || false;
 
 
     this.storage = require('node-persist');
@@ -167,7 +168,9 @@ TadoACplatform.prototype = {
                                             durationInMinutes: self.durationInMinutes,
                                             autoOnly: self.autoOnly,
                                             manualControl: self.manualControl,
-                                            extraTemperatureSensor: self.extraTemperatureSensor
+                                            extraTemperatureSensor: self.extraTemperatureSensor,
+                                            disableHumiditySensor: self.disableHumiditySensor,
+                                            disableFan: self.disableFan
                                         }
                                         self.log("Found new Zone: "+ tadoConfig.name + " (" + tadoConfig.id + ") ...")
                                         zonesArray.push(tadoConfig);
@@ -466,11 +469,11 @@ function TadoAccessory(log, config) {
     this.autoMode = config.autoMode;
     this.coolMode = config.coolMode;
     this.heatMode = config.heatMode;
-    this.fanMode = config.fanMode;
-
+    this.disableHumiditySensor = config.disableHumiditySensor;
+    this.disableFan = config.disableFan;
+    this.password = config.password;
     this.autoOnly = config.autoOnly
     this.manualControl = config.manualControl
-    this.extraTemperatureSensor = config.extraTemperatureSensor
     this.autoFanExists = config.autoFanExists
     this.maxSpeed = config.maxSpeed;
     this.useSwing = config.useSwing;
@@ -683,21 +686,25 @@ TadoAccessory.prototype.getServices = function() {
             .on('set', this.setRotationSpeed.bind(this));
     }
 
+    var services = [informationService, this.HeaterCoolerService];
 
+    if (!this.disableHumiditySensor){
+        this.HumiditySensor = new Service.HumiditySensor(this.zoneName + " Humidity");
 
-    this.HumiditySensor = new Service.HumiditySensor(this.zoneName + " Humidity");
+        this.HumiditySensor.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+            .setProps({
+                minValue: 0,
+                maxValue: 100,
+                minStep: 1
+            })
+            .on('get', this.getCurrentRelativeHumidity.bind(this));
+            
+            services.push(this.HumiditySensor);
+    }
 
-    this.HumiditySensor.getCharacteristic(Characteristic.CurrentRelativeHumidity)
-        .setProps({
-            minValue: 0,
-            maxValue: 100,
-            minStep: 1
-        })
-        .on('get', this.getCurrentRelativeHumidity.bind(this));
+  
 
-    var services = [informationService, this.HeaterCoolerService, this.HumiditySensor];
-
-    if (this.fanMode){
+    if (this.fanMode && !this.disableFan){
         this.FanService = new Service.Fanv2(this.zoneName + " Fan");
 
         this.FanService.getCharacteristic(Characteristic.Active)
