@@ -576,7 +576,7 @@ function TadoAccessory(log, config) {
     };
 
     var fanAutoFanExists = false
-    if (this.fanMode.fanSpeeds){
+    if (this.fanMode !== undefined && this.fanMode.fanSpeeds !== undefined && this.fanMode.fanSpeeds){
         for (i=0;i<this.fanMode.fanSpeeds.length;i++){
             if (this.fanMode.fanSpeeds[i] == "AUTO"){
                 fanAutoFanExists = true
