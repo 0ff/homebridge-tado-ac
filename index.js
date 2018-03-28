@@ -576,14 +576,14 @@ function TadoAccessory(log, config) {
     };
 
     var fanAutoFanExists = false
-    if (this.fanMode !== undefined && this.fanMode.fanSpeeds !== undefined && this.fanMode.fanSpeeds){
+    if (this.fanMode && this.fanMode.fanSpeeds){
         for (i=0;i<this.fanMode.fanSpeeds.length;i++){
             if (this.fanMode.fanSpeeds[i] == "AUTO"){
                 fanAutoFanExists = true
             }
         }
     }
-    if (this.fanMode.fanSpeeds && this.autoOnly && fanAutoFanExists) { lastFanOverlay.setting.fanSpeed = "AUTO" }
+    if (this.fanMode && this.fanMode.fanSpeeds && this.autoOnly && fanAutoFanExists) { lastFanOverlay.setting.fanSpeed = "AUTO" }
     else if (this.fanMode.fanSpeeds) { lastFanOverlay.setting.fanSpeed = this.fanMode.fanSpeeds[1] }
     if (this.fanMode.swings) { lastFanOverlay.setting.swing = "OFF" }
     if (this.tadoMode == "TIMER") { lastFanOverlay.termination.durationInSeconds = this.durationInMinutes*60 }
